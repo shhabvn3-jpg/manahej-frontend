@@ -71,10 +71,10 @@ islamic:{icon:"🕌",ar:"التربية الإسلامية",en:"Islamic Educatio
 arts:{icon:"🎨",ar:"التربية الفنية",en:"Arts",fr:"Arts"},
 pe:{icon:"⚽",ar:"التربية الرياضية",en:"Physical Education",fr:"Éducation physique"},
 computer:{icon:"💻",ar:"الحاسوب",en:"Computer",fr:"Informatique"},
-foundationArabic:{icon:"📖",ar:"اللغة العربية",en:"Arabic",fr:"Arabe",teacher:"محمد محروس"},
-foundationIslamic:{icon:"🕌",ar:"التربية الإسلامية",en:"Islamic Education",fr:"Éducation Islamique",teacher:"أحمد أبو لعسل"},
-foundationHistory:{icon:"🏺",ar:"تاريخ الأردن",en:"Jordan History",fr:"Histoire de Jordanie",teacher:"محمود بني عطا"},
-foundationMath:{icon:"🔢",ar:"الرياضيات",en:"Mathematics",fr:"Mathématiques",teacher:"فخري جرار / محمد نجار"},
+foundationArabic:{icon:"📖",ar:"اللغة العربية",en:"Arabic",fr:"Arabe"},
+foundationIslamic:{icon:"🕌",ar:"التربية الإسلامية",en:"Islamic Education",fr:"Éducation Islamique"},
+foundationHistory:{icon:"🏺",ar:"تاريخ الأردن",en:"Jordan History",fr:"Histoire de Jordanie"},
+foundationMath:{icon:"🔢",ar:"الرياضيات",en:"Mathematics",fr:"Mathématiques"},
 foundation:{icon:"🎯",ar:"تأسيس المواد الوزارية",en:"Ministerial Subjects Foundation",fr:"Fondation Matières Ministérielles"}
 };
 // Per-grade teacher/lesson resources. Key: grade number (as string) -> subject key -> {teacher, link}
@@ -85,6 +85,12 @@ math: [{ teacher: "محمد الجنايني", link: "https://www.youtube.com/@-
 arabic: [{ teacher: "محمد محروس", link: "https://www.youtube.com/c/mahrous" }],
 computer: [{ teacher: "ربيع الفتياني", link: "https://www.youtube.com/channel/UCFOry4O_FlI2HU5epQnDWPQ" }]
 }
+};
+const foundationResources = {
+foundationArabic: [{ teacher: "محمد محروس", link: "https://www.youtube.com/c/mahrous" }],
+foundationIslamic: [{ teacher: "أحمد أبو لعسل", link: "https://www.youtube.com/@mohammad_abu_asal" }],
+foundationHistory: [{ teacher: "محمود بني عطا", link: "https://www.youtube.com/channel/UC-O6XyixFHqNnAaflyA8V7w" }],
+foundationMath: [{ teacher: "فخري جرار", link: "https://www.youtube.com/@FJmath" }, { teacher: "محمد نجار", link: "https://www.youtube.com/channel/UCNmxtZAPnYMPwMbfrWB0HAg" }]
 };
 const translations = {
 ar:{dir:"rtl",navTitle:"🎓 منصة المناهج التعليمية",curriculumTitle:"اختر المنهاج الدراسي",curriculumDesc:"حدد الدولة لعرض الصفوف والمواد المعتمدة",countryNames:{jo:"المنهاج الأردني",sy:"المنهاج السوري",ps:"المنهاج الفلسطيني",all:"باقي المناهج"},gradeTitle:"اختر الصف الدراسي (١ - ١٢)",viewSubjects:"عرض المواد ←",backLabel:"→ رجوع للصفوف",backLabel2:"→ رجوع للمواد",foundationTitle:"تأسيس المواد الوزارية",fieldTitle:"اختر الفرع الأكاديمي",fieldAcademic:"أكاديمي",fieldBitc:"BITC",comingSoon:"قريباً",subjectsTitleFor:(g)=>`مواد ${g}`,footer:"جميع الحقوق محفوظة © 2026 - منصة المناهج التعليمية الشاملة",grades:["الصف الأول","الصف الثاني","الصف الثالث","الصف الرابع","الصف الخامس","الصف السادس","الصف السابع","الصف الثامن","الصف التاسع","الصف العاشر","الحادي عشر","الثاني عشر"]},
@@ -169,9 +175,10 @@ function renderFoundation(){
 const keys=['foundationArabic','foundationIslamic','foundationHistory','foundationMath'];
 const c=document.getElementById('foundation-container'); c.innerHTML='';
 keys.forEach((key)=>{
-const meta=subjectMeta[key]; const card=document.createElement('div');
-card.className='bg-white border border-slate-200 rounded-xl p-4 text-center shadow-sm flex flex-col items-center gap-2';
-card.innerHTML=`<span class="text-3xl">${meta.icon}</span><span class="font-bold text-slate-700 text-sm md:text-base">${meta[currentLang]}</span><span class="text-xs text-indigo-600">👤 ${meta.teacher}</span>`;
+const meta=subjectMeta[key]; const resources=foundationResources[key]; const card=document.createElement('div');
+card.className='bg-white border-2 border-indigo-300 rounded-xl p-4 text-center shadow-sm hover:shadow-md transition flex flex-col items-center gap-2';
+const teacherLinks=(resources||[]).map((r)=>`<a href="${r.link}" target="_blank" rel="noopener noreferrer" class="text-xs text-indigo-600 hover:underline flex items-center gap-1">👤 ${r.teacher}</a>`).join('');
+card.innerHTML=`<span class="text-3xl">${meta.icon}</span><span class="font-bold text-slate-700 text-sm md:text-base">${meta[currentLang]}</span><div class="flex flex-col gap-1 mt-1">${teacherLinks}</div>`;
 c.appendChild(card);
 });
 }
@@ -205,4 +212,4 @@ renderCountries(); renderGrades();
 </script>
 </body>
     </html>
-    
+        
