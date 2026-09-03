@@ -1,0 +1,224 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>منصة المناهج التعليمية</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;500;700;900&display=swap" rel="stylesheet">
+    <style>
+        body { font-family: 'Tajawal', sans-serif; }
+        :focus-visible { outline: 3px solid #4338ca; outline-offset: 2px; }
+        .fade-in { animation: fadeIn .25s ease-out; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(6px);} to { opacity: 1; transform: translateY(0);} }
+        @media (prefers-reduced-motion: reduce) { .fade-in { animation: none; } }
+    </style>
+</head>
+<body class="bg-slate-50 text-slate-800 min-h-screen flex flex-col">
+<div id="video-modal" class="hidden fixed inset-0 bg-black/80 z-50 flex items-center justify-center p-4" onclick="if(event.target===this)closeVideo()">
+<div class="bg-black rounded-xl overflow-hidden w-full max-w-3xl relative">
+<button onclick="closeVideo()" class="absolute top-2 left-2 z-10 bg-white/90 rounded-full w-8 h-8 flex items-center justify-center text-lg font-bold">✕</button>
+<div class="aspect-video"><iframe id="video-iframe" class="w-full h-full" src="" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe></div>
+</div>
+</div>
+<header class="bg-indigo-700 text-white shadow-lg sticky top-0 z-50">
+<div class="container mx-auto px-4 py-4 flex justify-between items-center">
+<h1 id="nav-title" class="text-2xl font-bold">🎓 منصة المناهج التعليمية</h1>
+<div class="flex items-center gap-2">
+<label for="lang-select" class="text-sm sr-only" id="lang-select-label">اللغة</label>
+<span aria-hidden="true" class="text-sm">🌐</span>
+<select id="lang-select" onchange="changeLanguage(this.value)" class="bg-indigo-800 text-white text-sm rounded-lg p-2 border border-indigo-500 focus:outline-none">
+<option value="ar" selected>العربية</option><option value="en">English</option><option value="fr">Français</option>
+</select></div></div></header>
+<main class="container mx-auto px-4 py-8 flex-grow">
+<section id="view-country" class="mb-10 text-center">
+<h2 id="curriculum-title" class="text-2xl md:text-3xl font-bold mb-3 text-slate-900">اختر المنهاج الدراسي</h2>
+<p id="curriculum-desc" class="text-slate-600 mb-6">حدد الدولة لعرض الصفوف والمواد المعتمدة</p>
+<div id="countries-container" class="grid grid-cols-2 sm:grid-cols-4 gap-4 max-w-3xl mx-auto" role="group"></div>
+</section>
+<hr class="border-slate-200 my-8">
+<section id="view-grades" class="mb-10">
+<h3 id="grade-title" class="text-xl font-bold mb-6 text-slate-800 text-center">اختر الصف الدراسي</h3>
+<div id="grades-container" class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-4 max-w-5xl mx-auto" role="group"></div>
+</section>
+<section id="view-field" class="mb-10 hidden fade-in">
+<div class="flex items-center justify-between max-w-3xl mx-auto mb-6">
+<button id="back-btn-field" onclick="showGrades()" class="text-indigo-700 font-bold hover:underline"><span id="back-label-field">→ رجوع للصفوف</span></button>
+<h3 id="field-title" class="text-xl font-bold text-slate-800"></h3><span class="w-16"></span></div>
+<div id="fields-container" class="grid grid-cols-2 gap-4 max-w-3xl mx-auto" role="group"></div>
+</section>
+<section id="view-subjects" class="mb-10 hidden fade-in">
+<div class="flex items-center justify-between max-w-5xl mx-auto mb-6">
+<button id="back-btn" onclick="backFromSubjects()" class="text-indigo-700 font-bold hover:underline"><span id="back-label">→ رجوع للصفوف</span></button>
+<h3 id="subjects-title" class="text-xl font-bold text-slate-800"></h3><span class="w-16"></span></div>
+<div id="subjects-container" class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4 max-w-5xl mx-auto" role="group"></div>
+</section>
+<section id="view-foundation" class="mb-10 hidden fade-in">
+<div class="flex items-center justify-between max-w-5xl mx-auto mb-6">
+<button id="back-btn-2" onclick="showSubjects()" class="text-indigo-700 font-bold hover:underline"><span id="back-label-2">→ رجوع للمواد</span></button>
+<h3 id="foundation-title" class="text-xl font-bold text-slate-800"></h3><span class="w-16"></span></div>
+<div id="foundation-container" class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4 max-w-5xl mx-auto" role="group"></div>
+</section>
+</main>
+<footer class="bg-slate-900 text-slate-400 py-6 text-center text-sm"><p id="footer-text">جميع الحقوق محفوظة © 2026 - منصة المناهج التعليمية الشاملة</p></footer>
+<script>
+const subjectSets = { core: ["arabic","math","science","english","socialStudies","islamic","arts","pe"], senior: ["arabic","math","physics","chemistry","biology","english","socialStudies","islamic","computer","history"] };
+const countries = { jo:{emoji:"🇯🇴",subjects:subjectSets}, sy:{emoji:"🇸🇾",subjects:subjectSets}, ps:{emoji:"🇵🇸",subjects:subjectSets}, all:{emoji:"🌐",subjects:subjectSets} };
+const subjectMeta = {
+arabic:{icon:"📖",ar:"اللغة العربية",en:"Arabic",fr:"Arabe"},
+math:{icon:"🔢",ar:"الرياضيات",en:"Mathematics",fr:"Mathématiques"},
+science:{icon:"🔬",ar:"العلوم",en:"Science",fr:"Sciences"},
+physics:{icon:"⚛️",ar:"الفيزياء",en:"Physics",fr:"Physique"},
+chemistry:{icon:"🧪",ar:"الكيمياء",en:"Chemistry",fr:"Chimie"},
+biology:{icon:"🧬",ar:"الأحياء",en:"Biology",fr:"Biologie"},
+english:{icon:"🔤",ar:"اللغة الإنجليزية",en:"English",fr:"Anglais"},
+socialStudies:{icon:"🌍",ar:"الدراسات الاجتماعية",en:"Social Studies",fr:"Études sociales"},
+islamic:{icon:"🕌",ar:"التربية الإسلامية",en:"Islamic Education",fr:"Éducation islamique"},
+arts:{icon:"🎨",ar:"التربية الفنية",en:"Arts",fr:"Arts"},
+pe:{icon:"⚽",ar:"التربية الرياضية",en:"Physical Education",fr:"Éducation physique"},
+computer:{icon:"💻",ar:"الحاسوب",en:"Computer",fr:"Informatique"},
+history:{icon:"🏺",ar:"تاريخ الأردن",en:"Jordan History",fr:"Histoire de Jordanie"},
+foundationArabic:{icon:"📖",ar:"اللغة العربية",en:"Arabic",fr:"Arabe"},
+foundationIslamic:{icon:"🕌",ar:"التربية الإسلامية",en:"Islamic Education",fr:"Éducation Islamique"},
+foundationHistory:{icon:"🏺",ar:"تاريخ الأردن",en:"Jordan History",fr:"Histoire de Jordanie"},
+foundationMath:{icon:"🔢",ar:"الرياضيات",en:"Mathematics",fr:"Mathématiques"},
+foundation:{icon:"🎯",ar:"تأسيس المواد الوزارية",en:"Ministerial Subjects Foundation",fr:"Fondation Matières Ministérielles"}
+};
+// Per-grade teacher/lesson resources. Key: grade number (as string) -> subject key -> {teacher, link}
+const subjectResources = {
+"11": {
+islamic: [{ teacher: "حسين مسالمة", link: "https://www.youtube.com/watch?v=Ghz0B1ThjUY" }, { teacher: "عبد العظيم الشاويش", link: "https://www.youtube.com/watch?v=e3oX-lP9wQ0" }, { teacher: "علاء جابر", link: "https://www.youtube.com/watch?v=2IwWl9K0BvE" }],
+math: [{ teacher: "محمد الجنايني", link: "https://www.youtube.com/@-mohammedeljanaini" }, { teacher: "فخري جرار", link: "https://www.youtube.com/@FJmath" }, { teacher: "أسامة عكور", link: "https://www.youtube.com/channel/UCY1pxQpMiD6DHtqhAozLb7Q" }, { teacher: "باسل الصرايرة", link: "https://www.youtube.com/watch?v=Dq8GHGkQS7k" }, { teacher: "مصطفى العفوري", link: "https://www.youtube.com/playlist?list=PLevaALBA2kClUL-CTYRB2r6Hy7p9oGPjb" }, { teacher: "سامر رشاد", link: "https://www.youtube.com/@SamerRashad88" }, { teacher: "عمر منصور", link: "https://www.youtube.com/@OMansourr" }, { teacher: "جمعة عياش", link: "https://www.youtube.com/@jumahayash" }, { teacher: "عامر جرابعة", link: "https://www.youtube.com/channel/UC5XdeJJR2tUlc94nBjukohQ" }, { teacher: "محمود ياسين", link: "https://www.youtube.com/watch?v=2f4ZJ3GRvYE" }, { teacher: "راشد الفاعوري", link: "https://www.youtube.com/@rashed_alfaouri98" }],
+arabic: [{ teacher: "محمد محروس", link: "https://www.youtube.com/c/mahrous" }, { teacher: "عبد الهادي الخطيب", link: "https://www.youtube.com/@abdelhadi.alkhateeb" }, { teacher: "ضياء أبو الرز", link: "https://www.youtube.com/@Diaa.aburuz" }, { teacher: "علي العقرباوي", link: "https://www.youtube.com/channel/UCzL7c5QlPqF73C3bzzTRr6g" }, { teacher: "فارس تلاوي", link: "https://www.youtube.com/watch?v=9wVJk0ATEII" }, { teacher: "محمد العيساوي", link: "https://www.youtube.com/channel/UCm8BfOnJRRxtCOO2RThv9Yg" }],
+computer: [{ teacher: "ربيع الفتياني", link: "https://www.youtube.com/channel/UCFOry4O_FlI2HU5epQnDWPQ" }],
+history: [{ teacher: "شادي النجار", link: "https://www.youtube.com/@shadinajjar6285" }, { teacher: "محمد الكوفحي", link: "https://www.youtube.com/channel/UCo2f9HiagjY4013qO4lr_Vg" }, { teacher: "محمد البطران", link: "https://www.youtube.com/@MohmmadBatran" }, { teacher: "محمد النجار", link: "https://www.youtube.com/@Najjar_history" }, { teacher: "أحمد أبو الصادق", link: "https://www.youtube.com/watch?v=mNvfvA6QkQs" }, { teacher: "حسين مسالمة", link: "https://www.youtube.com/watch?v=Ghz0B1ThjUY" }]
+}
+};
+const foundationResources = {
+foundationArabic: [{ teacher: "محمد محروس", link: "https://www.youtube.com/c/mahrous" }],
+foundationIslamic: [{ teacher: "أحمد أبو لعسل", link: "https://www.youtube.com/@mohammad_abu_asal" }],
+foundationHistory: [{ teacher: "محمود بني عطا", link: "https://www.youtube.com/channel/UC-O6XyixFHqNnAaflyA8V7w" }],
+foundationMath: [{ teacher: "فخري جرار", link: "https://www.youtube.com/@FJmath" }, { teacher: "محمد نجار", link: "https://www.youtube.com/channel/UCNmxtZAPnYMPwMbfrWB0HAg" }]
+};
+const translations = {
+ar:{dir:"rtl",navTitle:"🎓 منصة المناهج التعليمية",curriculumTitle:"اختر المنهاج الدراسي",curriculumDesc:"حدد الدولة لعرض الصفوف والمواد المعتمدة",countryNames:{jo:"المنهاج الأردني",sy:"المنهاج السوري",ps:"المنهاج الفلسطيني",all:"باقي المناهج"},gradeTitle:"اختر الصف الدراسي (١ - ١٢)",viewSubjects:"عرض المواد ←",backLabel:"→ رجوع للصفوف",backLabel2:"→ رجوع للمواد",foundationTitle:"تأسيس المواد الوزارية",fieldTitle:"اختر الفرع الأكاديمي",fieldAcademic:"أكاديمي",fieldBitc:"BITC",comingSoon:"قريباً",subjectsTitleFor:(g)=>`مواد ${g}`,footer:"جميع الحقوق محفوظة © 2026 - منصة المناهج التعليمية الشاملة",grades:["الصف الأول","الصف الثاني","الصف الثالث","الصف الرابع","الصف الخامس","الصف السادس","الصف السابع","الصف الثامن","الصف التاسع","الصف العاشر","الحادي عشر","الثاني عشر"]},
+en:{dir:"ltr",navTitle:"🎓 Educational Curricula Platform",curriculumTitle:"Select Curriculum",curriculumDesc:"Choose a country to view available grades and subjects",countryNames:{jo:"Jordanian Curriculum",sy:"Syrian Curriculum",ps:"Palestinian Curriculum",all:"Other Curricula"},gradeTitle:"Select Grade Level (1 - 12)",viewSubjects:"View Subjects →",backLabel:"← Back to grades",backLabel2:"← Back to subjects",foundationTitle:"Ministerial Subjects Foundation",fieldTitle:"Select Academic Field",fieldAcademic:"Academic",fieldBitc:"BITC",comingSoon:"Coming soon",subjectsTitleFor:(g)=>`${g} subjects`,footer:"All rights reserved © 2026 - Educational Curricula Platform",grades:["Grade 1","Grade 2","Grade 3","Grade 4","Grade 5","Grade 6","Grade 7","Grade 8","Grade 9","Grade 10","Grade 11","Grade 12"]},
+fr:{dir:"ltr",navTitle:"🎓 Plateforme des Programmes Éducatifs",curriculumTitle:"Sélectionnez le Programme",curriculumDesc:"Choisissez un pays pour voir les classes et matières",countryNames:{jo:"Programme Jordanien",sy:"Programme Syrien",ps:"Programme Palestinien",all:"Autres Programmes"},gradeTitle:"Sélectionnez le Niveau (1 - 12)",viewSubjects:"Voir les matières →",backLabel:"← Retour aux classes",backLabel2:"← Retour aux matières",foundationTitle:"Fondation Matières Ministérielles",fieldTitle:"Sélectionnez la filière",fieldAcademic:"Académique",fieldBitc:"BITC",comingSoon:"Bientôt disponible",subjectsTitleFor:(g)=>`Matières — ${g}`,footer:"Tous droits réservés © 2026 - Plateforme Éducative",grades:["1ère Année","2ème Année","3ème Année","4ème Année","5ème Année","6ème Année","7ème Année","8ème Année","9ème Année","10ème Année","11ème Année","12ème Année"]}
+};
+let currentLang='ar', selectedCountry='jo', selectedGradeIndex=null, selectedField=null;
+function t(){return translations[currentLang];}
+function changeLanguage(lang){
+currentLang=lang; const tr=t();
+document.documentElement.dir=tr.dir; document.documentElement.lang=lang;
+document.getElementById('nav-title').innerText=tr.navTitle;
+document.getElementById('curriculum-title').innerText=tr.curriculumTitle;
+document.getElementById('curriculum-desc').innerText=tr.curriculumDesc;
+document.getElementById('grade-title').innerText=tr.gradeTitle;
+document.getElementById('back-label').innerText=tr.backLabel;
+document.getElementById('back-label-2').innerText=tr.backLabel2;
+document.getElementById('foundation-title').innerText=tr.foundationTitle;
+document.getElementById('back-label-field').innerText=tr.backLabel;
+document.getElementById('field-title').innerText=tr.fieldTitle;
+document.getElementById('footer-text').innerText=tr.footer;
+document.getElementById('lang-select-label').innerText = lang==='ar'?'اللغة':(lang==='fr'?'Langue':'Language');
+renderCountries(); renderGrades();
+if(selectedGradeIndex!==null) renderSubjects();
+if(!document.getElementById('view-foundation').classList.contains('hidden')) renderFoundation();
+if(!document.getElementById('view-field').classList.contains('hidden')) renderFields();
+}
+function renderCountries(){
+const c=document.getElementById('countries-container'); const tr=t(); c.innerHTML='';
+Object.keys(countries).forEach((code)=>{
+const isActive=code===selectedCountry;
+const btn=document.createElement('button'); btn.type='button'; btn.id=`btn-${code}`;
+btn.className=`country-btn p-4 rounded-xl border-2 font-bold text-lg transition shadow-sm ${isActive?'border-indigo-600 bg-indigo-50':'border-slate-200 bg-white hover:border-indigo-300'}`;
+btn.onclick=()=>selectCountry(code);
+btn.innerHTML=`${countries[code].emoji} <span>${tr.countryNames[code]}</span>`;
+c.appendChild(btn);
+});
+}
+function renderGrades(){
+const c=document.getElementById('grades-container'); const tr=t(); c.innerHTML='';
+tr.grades.forEach((grade,index)=>{
+const card=document.createElement('button'); card.type='button';
+card.className='bg-white border border-slate-200 rounded-xl p-5 text-center shadow-sm hover:shadow-md hover:border-indigo-500 cursor-pointer transition flex flex-col justify-between items-center group';
+card.onclick=()=>openGrade(index);
+card.innerHTML=`<span class="text-3xl font-black text-indigo-600 mb-2">${index+1}</span><span class="font-bold text-slate-700 text-sm md:text-base">${grade}</span><span class="text-xs text-indigo-500 mt-3">${tr.viewSubjects}</span>`;
+c.appendChild(card);
+});
+}
+function getEmbedUrl(link){
+const v=link.match(/[?&]v=([^&]+)/); if(v) return 'https://www.youtube.com/embed/'+v[1];
+const s=link.match(/youtu\.be\/([^?&]+)/); if(s) return 'https://www.youtube.com/embed/'+s[1];
+const p=link.match(/[?&]list=([^&]+)/); if(p) return 'https://www.youtube.com/embed/videoseries?list='+p[1];
+return null;
+}
+function openVideo(embedUrl){document.getElementById('video-iframe').src=embedUrl; document.getElementById('video-modal').classList.remove('hidden');}
+function closeVideo(){document.getElementById('video-modal').classList.add('hidden'); document.getElementById('video-iframe').src='';}
+function teacherLinkHtml(r){
+const embed=getEmbedUrl(r.link);
+if(embed) return `<button type="button" onclick="openVideo('${embed}')" class="text-xs text-indigo-600 hover:underline flex items-center gap-1">▶️ ${r.teacher}</button>`;
+return `<a href="${r.link}" target="_blank" rel="noopener noreferrer" class="text-xs text-indigo-600 hover:underline flex items-center gap-1">👤 ${r.teacher}</a>`;
+}
+function renderSubjects(){
+const tr=t(); const grade=tr.grades[selectedGradeIndex];
+document.getElementById('subjects-title').innerText=tr.subjectsTitleFor(grade);
+const isSenior=selectedGradeIndex>=10, isGrade12=selectedGradeIndex===11;
+const gradeNumber = String(selectedGradeIndex + 1);
+const setKey=isSenior?'senior':'core';
+const keys=countries[selectedCountry].subjects[setKey].slice();
+const c=document.getElementById('subjects-container'); c.innerHTML='';
+keys.forEach((key)=>{
+const meta=subjectMeta[key];
+const resources = subjectResources[gradeNumber] && subjectResources[gradeNumber][key];
+if(resources && resources.length){
+const card=document.createElement('div');
+card.className='bg-white border-2 border-indigo-300 rounded-xl p-4 text-center shadow-sm hover:shadow-md transition flex flex-col items-center gap-2';
+const teacherLinks = resources.map(teacherLinkHtml).join('');
+card.innerHTML=`<span class="text-3xl">${meta.icon}</span><span class="font-bold text-slate-700 text-sm md:text-base">${meta[currentLang]}</span><div class="flex flex-col gap-1 mt-1">${teacherLinks}</div>`;
+c.appendChild(card);
+} else {
+const card=document.createElement('div');
+card.className='bg-white border border-slate-200 rounded-xl p-4 text-center shadow-sm flex flex-col items-center gap-2';
+card.innerHTML=`<span class="text-3xl">${meta.icon}</span><span class="font-bold text-slate-700 text-sm md:text-base">${meta[currentLang]}</span>`;
+c.appendChild(card);
+}
+});
+if(isGrade12){
+const meta=subjectMeta.foundation; const card=document.createElement('button'); card.type='button';
+card.onclick=()=>openFoundation();
+card.className='bg-indigo-50 border-2 border-indigo-300 rounded-xl p-4 text-center shadow-sm hover:shadow-md hover:border-indigo-500 transition flex flex-col items-center gap-2 cursor-pointer';
+card.innerHTML=`<span class="text-3xl">${meta.icon}</span><span class="font-bold text-indigo-700 text-sm md:text-base">${meta[currentLang]}</span>`;
+c.appendChild(card);
+}
+}
+function renderFoundation(){
+const keys=['foundationArabic','foundationIslamic','foundationHistory','foundationMath'];
+const c=document.getElementById('foundation-container'); c.innerHTML='';
+keys.forEach((key)=>{
+const meta=subjectMeta[key]; const resources=foundationResources[key]; const card=document.createElement('div');
+card.className='bg-white border-2 border-indigo-300 rounded-xl p-4 text-center shadow-sm hover:shadow-md transition flex flex-col items-center gap-2';
+const teacherLinks=(resources||[]).map(teacherLinkHtml).join('');
+card.innerHTML=`<span class="text-3xl">${meta.icon}</span><span class="font-bold text-slate-700 text-sm md:text-base">${meta[currentLang]}</span><div class="flex flex-col gap-1 mt-1">${teacherLinks}</div>`;
+c.appendChild(card);
+});
+}
+function selectCountry(code){selectedCountry=code; renderCountries(); if(selectedGradeIndex!==null) renderSubjects();}
+function hideAllViews(){['view-country','view-grades','view-field','view-subjects','view-foundation'].forEach((id)=>{document.getElementById(id).classList.add('hidden');});}
+function renderFields(){
+const tr=t(); const c=document.getElementById('fields-container'); c.innerHTML='';
+const a=document.createElement('button'); a.type='button'; a.onclick=()=>selectField('academic');
+a.className='bg-white border-2 border-indigo-600 bg-indigo-50 rounded-xl p-6 text-center shadow-sm hover:shadow-md transition flex flex-col items-center gap-2 cursor-pointer';
+a.innerHTML=`<span class="text-3xl">🎓</span><span class="font-bold text-indigo-700 text-base">${tr.fieldAcademic}</span>`;
+c.appendChild(a);
+const b=document.createElement('div');
+b.className='bg-slate-100 border-2 border-slate-200 rounded-xl p-6 text-center flex flex-col items-center gap-2 opacity-60 cursor-not-allowed';
+b.innerHTML=`<span class="text-3xl">🔧</span><span class="font-bold text-slate-500 text-base">${tr.fieldBitc}</span><span class="text-xs text-slate-400">${tr.comingSoon}</span>`;
+c.appendChild(b);
+}
+function selectField(field){selectedField=field; renderSubjects(); hideAllViews(); document.getElementById('view-subjects').classList.remove('hidden');}
+function openGrade(index){
+selectedGradeIndex=index; hideAllViews();
+if(index>=10){renderFields(); document.getElementById('view-field').classList.remove('hidden');}
+else{renderSubjects(); document.getElementById('view-subjects').classList.remove('hidden');}
+  
