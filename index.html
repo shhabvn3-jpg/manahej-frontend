@@ -15,6 +15,12 @@
     </style>
 </head>
 <body class="bg-slate-50 text-slate-800 min-h-screen flex flex-col">
+<div id="video-modal" class="hidden fixed inset-0 bg-black/80 z-50 flex items-center justify-center p-4" onclick="if(event.target===this)closeVideo()">
+<div class="bg-black rounded-xl overflow-hidden w-full max-w-3xl relative">
+<button onclick="closeVideo()" class="absolute top-2 left-2 z-10 bg-white/90 rounded-full w-8 h-8 flex items-center justify-center text-lg font-bold">✕</button>
+<div class="aspect-video"><iframe id="video-iframe" class="w-full h-full" src="" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe></div>
+</div>
+</div>
 <header class="bg-indigo-700 text-white shadow-lg sticky top-0 z-50">
 <div class="container mx-auto px-4 py-4 flex justify-between items-center">
 <h1 id="nav-title" class="text-2xl font-bold">🎓 منصة المناهج التعليمية</h1>
@@ -141,6 +147,19 @@ card.innerHTML=`<span class="text-3xl font-black text-indigo-600 mb-2">${index+1
 c.appendChild(card);
 });
 }
+function getEmbedUrl(link){
+const v=link.match(/[?&]v=([^&]+)/); if(v) return 'https://www.youtube.com/embed/'+v[1];
+const s=link.match(/youtu\.be\/([^?&]+)/); if(s) return 'https://www.youtube.com/embed/'+s[1];
+const p=link.match(/[?&]list=([^&]+)/); if(p) return 'https://www.youtube.com/embed/videoseries?list='+p[1];
+return null;
+}
+function openVideo(embedUrl){document.getElementById('video-iframe').src=embedUrl; document.getElementById('video-modal').classList.remove('hidden');}
+function closeVideo(){document.getElementById('video-modal').classList.add('hidden'); document.getElementById('video-iframe').src='';}
+function teacherLinkHtml(r){
+const embed=getEmbedUrl(r.link);
+if(embed) return `<button type="button" onclick="openVideo('${embed}')" class="text-xs text-indigo-600 hover:underline flex items-center gap-1">▶️ ${r.teacher}</button>`;
+return `<a href="${r.link}" target="_blank" rel="noopener noreferrer" class="text-xs text-indigo-600 hover:underline flex items-center gap-1">👤 ${r.teacher}</a>`;
+}
 function renderSubjects(){
 const tr=t(); const grade=tr.grades[selectedGradeIndex];
 document.getElementById('subjects-title').innerText=tr.subjectsTitleFor(grade);
@@ -155,7 +174,7 @@ const resources = subjectResources[gradeNumber] && subjectResources[gradeNumber]
 if(resources && resources.length){
 const card=document.createElement('div');
 card.className='bg-white border-2 border-indigo-300 rounded-xl p-4 text-center shadow-sm hover:shadow-md transition flex flex-col items-center gap-2';
-const teacherLinks = resources.map((r) => `<a href="${r.link}" target="_blank" rel="noopener noreferrer" class="text-xs text-indigo-600 hover:underline flex items-center gap-1">👤 ${r.teacher}</a>`).join('');
+const teacherLinks = resources.map(teacherLinkHtml).join('');
 card.innerHTML=`<span class="text-3xl">${meta.icon}</span><span class="font-bold text-slate-700 text-sm md:text-base">${meta[currentLang]}</span><div class="flex flex-col gap-1 mt-1">${teacherLinks}</div>`;
 c.appendChild(card);
 } else {
@@ -179,7 +198,7 @@ const c=document.getElementById('foundation-container'); c.innerHTML='';
 keys.forEach((key)=>{
 const meta=subjectMeta[key]; const resources=foundationResources[key]; const card=document.createElement('div');
 card.className='bg-white border-2 border-indigo-300 rounded-xl p-4 text-center shadow-sm hover:shadow-md transition flex flex-col items-center gap-2';
-const teacherLinks=(resources||[]).map((r)=>`<a href="${r.link}" target="_blank" rel="noopener noreferrer" class="text-xs text-indigo-600 hover:underline flex items-center gap-1">👤 ${r.teacher}</a>`).join('');
+const teacherLinks=(resources||[]).map(teacherLinkHtml).join('');
 card.innerHTML=`<span class="text-3xl">${meta.icon}</span><span class="font-bold text-slate-700 text-sm md:text-base">${meta[currentLang]}</span><div class="flex flex-col gap-1 mt-1">${teacherLinks}</div>`;
 c.appendChild(card);
 });
@@ -202,16 +221,4 @@ function openGrade(index){
 selectedGradeIndex=index; hideAllViews();
 if(index>=10){renderFields(); document.getElementById('view-field').classList.remove('hidden');}
 else{renderSubjects(); document.getElementById('view-subjects').classList.remove('hidden');}
-}
-function showGrades(){selectedGradeIndex=null; selectedField=null; hideAllViews(); document.getElementById('view-country').classList.remove('hidden'); document.getElementById('view-grades').classList.remove('hidden');}
-function openFoundation(){renderFoundation(); hideAllViews(); document.getElementById('view-foundation').classList.remove('hidden');}
-function showSubjects(){hideAllViews(); document.getElementById('view-subjects').classList.remove('hidden');}
-function backFromSubjects(){
-if(selectedGradeIndex>=10){hideAllViews(); renderFields(); document.getElementById('view-field').classList.remove('hidden');}
-else{showGrades();}
-}
-renderCountries(); renderGrades();
-</script>
-</body>
-                                                                                                         </html>
     
