@@ -98,7 +98,7 @@
 <p id="footer-text">جميع الحقوق محفوظة © 2026 - المنصة التعليمية الأردنية</p></footer>
 <script>
 const subjectSets = { core: ["arabic","math","science","english","socialStudies","islamic","arts","pe"], senior: ["arabic","math","physics","chemistry","biology","english","socialStudies","islamic","computer","history"] };
-const countries = { jo:{emoji:"🇯🇴",subjects:subjectSets}, sy:{emoji:"🇸🇾",subjects:subjectSets}, ps:{emoji:"🇵🇸",subjects:subjectSets}, all:{emoji:"🌐",subjects:subjectSets} };
+const countries = { jo:{emoji:"🇯🇴",subjects:subjectSets} };
 const subjectMeta = {
 arabic:{icon:"📖",ar:"اللغة العربية",en:"Arabic",fr:"Arabe"},
 math:{icon:"🔢",ar:"الرياضيات",en:"Mathematics",fr:"Mathématiques"},
@@ -206,77 +206,4 @@ return `<a href="${r.link}" target="_blank" rel="noopener noreferrer" class="tex
 function renderSubjects(){
 const tr=t(); const grade=tr.grades[selectedGradeIndex];
 document.getElementById('subjects-title').innerText=tr.subjectsTitleFor(grade);
-const isSenior=selectedGradeIndex>=10, isGrade12=selectedGradeIndex===11;
-const gradeNumber = String(selectedGradeIndex + 1);
-const setKey=isSenior?'senior':'core';
-const keys=countries[selectedCountry].subjects[setKey].slice();
-const tbLink = textbookLinks[gradeNumber];
-if(tbLink){
-document.getElementById('subjects-title').innerHTML = tr.subjectsTitleFor(grade) + ` <a href="${tbLink}" target="_blank" rel="noopener noreferrer" class="inline-block align-middle mr-2 text-sm bg-amber-100 text-amber-800 px-3 py-1 rounded-full hover:bg-amber-200">📖 كتاب الصف</a>`;
-}
-const c=document.getElementById('subjects-container'); c.innerHTML='';
-keys.forEach((key)=>{
-const meta=subjectMeta[key];
-const resources = subjectResources[gradeNumber] && subjectResources[gradeNumber][key];
-if(resources && resources.length){
-const card=document.createElement('div');
-card.className='bg-white border-2 border-indigo-300 rounded-xl p-4 text-center shadow-sm hover:shadow-md transition flex flex-col items-center gap-2';
-const teacherLinks = resources.map(teacherLinkHtml).join('');
-card.innerHTML=`<span class="text-3xl">${meta.icon}</span><span class="font-bold text-slate-700 text-sm md:text-base">${meta[currentLang]}</span><div class="flex flex-col gap-1 mt-1">${teacherLinks}</div>`;
-c.appendChild(card);
-} else {
-const card=document.createElement('div');
-card.className='bg-white border border-slate-200 rounded-xl p-4 text-center shadow-sm flex flex-col items-center gap-2';
-card.innerHTML=`<span class="text-3xl">${meta.icon}</span><span class="font-bold text-slate-700 text-sm md:text-base">${meta[currentLang]}</span>`;
-c.appendChild(card);
-}
-});
-if(isGrade12){
-const meta=subjectMeta.foundation; const card=document.createElement('button'); card.type='button';
-card.onclick=()=>openFoundation();
-card.className='bg-indigo-50 border-2 border-indigo-300 rounded-xl p-4 text-center shadow-sm hover:shadow-md hover:border-indigo-500 transition flex flex-col items-center gap-2 cursor-pointer';
-card.innerHTML=`<span class="text-3xl">${meta.icon}</span><span class="font-bold text-indigo-700 text-sm md:text-base">${meta[currentLang]}</span>`;
-c.appendChild(card);
-}
-}
-function renderFoundation(){
-const keys=['foundationArabic','foundationIslamic','foundationHistory','foundationMath'];
-const c=document.getElementById('foundation-container'); c.innerHTML='';
-keys.forEach((key)=>{
-const meta=subjectMeta[key]; const resources=foundationResources[key]; const card=document.createElement('div');
-card.className='bg-white border-2 border-indigo-300 rounded-xl p-4 text-center shadow-sm hover:shadow-md transition flex flex-col items-center gap-2';
-const teacherLinks=(resources||[]).map(teacherLinkHtml).join('');
-card.innerHTML=`<span class="text-3xl">${meta.icon}</span><span class="font-bold text-slate-700 text-sm md:text-base">${meta[currentLang]}</span><div class="flex flex-col gap-1 mt-1">${teacherLinks}</div>`;
-c.appendChild(card);
-});
-}
-function selectCountry(code){selectedCountry=code; renderCountries(); if(selectedGradeIndex!==null) renderSubjects();}
-function hideAllViews(){['view-country','view-grades','view-field','view-subjects','view-foundation'].forEach((id)=>{document.getElementById(id).classList.add('hidden');});}
-function renderFields(){
-const tr=t(); const c=document.getElementById('fields-container'); c.innerHTML='';
-const a=document.createElement('button'); a.type='button'; a.onclick=()=>selectField('academic');
-a.className='bg-white border-2 border-indigo-600 bg-indigo-50 rounded-xl p-6 text-center shadow-sm hover:shadow-md transition flex flex-col items-center gap-2 cursor-pointer';
-a.innerHTML=`<span class="text-3xl">🎓</span><span class="font-bold text-indigo-700 text-base">${tr.fieldAcademic}</span>`;
-c.appendChild(a);
-const b=document.createElement('div');
-b.className='bg-slate-100 border-2 border-slate-200 rounded-xl p-6 text-center flex flex-col items-center gap-2 opacity-60 cursor-not-allowed';
-b.innerHTML=`<span class="text-3xl">🔧</span><span class="font-bold text-slate-500 text-base">${tr.fieldBitc}</span><span class="text-xs text-slate-400">${tr.comingSoon}</span>`;
-c.appendChild(b);
-}
-function selectField(field){selectedField=field; renderSubjects(); hideAllViews(); document.getElementById('view-subjects').classList.remove('hidden');}
-function openGrade(index){
-selectedGradeIndex=index; hideAllViews();
-if(index>=10){renderFields(); document.getElementById('view-field').classList.remove('hidden');}
-else{renderSubjects(); document.getElementById('view-subjects').classList.remove('hidden');}
-}
-function showGrades(){selectedGradeIndex=null; selectedField=null; hideAllViews(); document.getElementById('view-country').classList.remove('hidden'); document.getElementById('view-grades').classList.remove('hidden');}
-function openFoundation(){renderFoundation(); hideAllViews(); document.getElementById('view-foundation').classList.remove('hidden');}
-function showSubjects(){hideAllViews(); document.getElementById('view-subjects').classList.remove('hidden');}
-function backFromSubjects(){
-if(selectedGradeIndex>=10){hideAllViews(); renderFields(); document.getElementById('view-field').classList.remove('hidden');}
-else{showGrades();}
-}
-renderCountries(); renderGrades();
-</script>
-</body>
-</html>
+const isS
